@@ -28,6 +28,16 @@ int main(int argc, char** argv)
     }	
 	//Command parser
 	//------------------------------------------------------------------------------------
+
+	//모니터 해상도
+	Display* disp = XOpenDisplay(NULL);
+    Screen*  scrn = DefaultScreenOfDisplay(disp);
+    const int monitor_width  = scrn->width;
+    const int monitor_height = scrn->height;
+
+	printf("Monitor size : %d, %d\n", monitor_width, monitor_height) ;
+
+	cv::Mat display = cv::Mat::zeros(cv::Size(monitor_width, monitor_height), CV_8UC3) ;
 	
 	std::vector<std::string> vec_image_path ;
 	
@@ -66,17 +76,59 @@ int main(int argc, char** argv)
 	for( int i=0 ; i<size_image_files ; i++ )
 	{
 		vec_image[i] = cv::imread(vec_image_path[i]) ;
+
+		//rotate
+		double angle = 90;
+
+	    // get rotation matrix for rotating the image around its center in pixel coordinates
+	    cv::Point2f center((vec_image[i].cols-1)/2.0, (vec_image[i].rows-1)/2.0);
+	    cv::Mat rot = cv::getRotationMatrix2D(center, angle, 1.0);
+	    // determine bounding rectangle, center not relevant
+	    cv::Rect2f bbox = cv::RotatedRect(cv::Point2f(), vec_image[i].size(), angle).boundingRect2f();
+	    // adjust transformation matrix
+	    rot.at<double>(0,2) += bbox.width/2.0 - vec_image[i].cols/2.0;
+	    rot.at<double>(1,2) += bbox.height/2.0 - vec_image[i].rows/2.0;
+
+	    cv::Mat dst;
+	    cv::warpAffine(vec_image[i], dst, rot, bbox.size());
+		
+		//Resize to fit monitor resolution.
+		float resize_width_rate = 1.0 ;
+		float resize_height_rate = 1.0 ;
+		
+		resize_width_rate = (float)monitor_width / (float)dst.cols ;
+		resize_height_rate = (float)monitor_height / (float)dst.rows ;
+
+		float resize_rate = std::fmin(resize_width_rate, resize_height_rate) ;
+
+		if( resize_rate < 1.0 )
+		{
+			cv::resize(dst, vec_image[i], cv::Size(), resize_rate, resize_rate) ;
+		}
 	}
 
 	char key = 0 ;
 	int index = 0 ;
 	const int size_images = vec_image.size() ;
-	
+
+	cv::namedWindow("image", cv::WND_PROP_FULLSCREEN) ;
+	cv::setWindowProperty("image", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN) ;
+
 	while(1)
 	{
 		if( index < size_images )
 		{
-			cv::imshow("image", vec_image[index])		 ;
+			//copy
+			cv::Rect roi ;
+			roi.x = (display.cols - vec_image[index].cols)/2 ;
+			roi.y = (display.rows - vec_image[index].rows)/2 ;
+			roi.width = vec_image[index].cols ;
+			roi.height = vec_image[index].rows ;
+
+			display = 0 ;
+			vec_image[index].copyTo(display(roi)) ;
+			
+			cv::imshow("image", display);
 			
 			key = cv::waitKey(i_user_delay) ;
 

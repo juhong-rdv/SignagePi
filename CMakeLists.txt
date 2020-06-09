@@ -2,6 +2,8 @@ project(SignagePi)
 
 cmake_minimum_required(VERSION 2.8)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
 #opencv
 find_package(OpenCV REQUIRED)
 include_directories( ${OPENCV_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -11,6 +13,10 @@ find_package(Boost REQUIRED COMPONENTS system thread filesystem regex date_time 
 #find_package(Boost REQUIRED)
 include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR} )
 include_directories( ${Boost_LIBRARY_DIRS} ${CMAKE_CURRENT_SOURCE_DIR} ) 
+
+#X11
+include_directories(/usr/include/X11) # I assume this is the headers include - the .h files are confirmed there
+link_directories(/usr/lib/x86_64-linux-gnu/) # I assume this is linked libraries
 
 set(APPENDED_SOURCE)
 
@@ -45,4 +51,4 @@ add_executable( SignagePi ${APPENDED_SOURCE} )
 
 target_link_libraries(SignagePi ${OpenCV_LIBS})
 target_link_libraries(SignagePi ${Boost_LIBRARIES})
-
+target_link_libraries(SignagePi X11 )

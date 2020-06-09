@@ -24,5 +24,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/iostreams/categories.hpp>  // sink_tag
 
+#include <X11/Xlib.h>
+
 #endif
 
