@@ -48,6 +48,7 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
+SignagePi
 
 ### CMake Patch ###
 # External projects
@@ -55,4 +56,8 @@ _deps
 
 #install folder
 install
+
+#image folder
+image
+
 # End of https://www.gitignore.io/api/c++,cmake

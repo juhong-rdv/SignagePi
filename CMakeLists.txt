@@ -7,8 +7,8 @@ find_package(OpenCV REQUIRED)
 include_directories( ${OPENCV_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR} )
 
 #boost
-#find_package(Boost REQUIRED COMPONENTS thread)
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system thread filesystem regex date_time program_options)
+#find_package(Boost REQUIRED)
 include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR} )
 include_directories( ${Boost_LIBRARY_DIRS} ${CMAKE_CURRENT_SOURCE_DIR} ) 
 
