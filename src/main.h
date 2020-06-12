@@ -4,7 +4,7 @@
 #include <string>
 #include <curl/curl.h>
 
-#define IMAGE_PATH "../image"
+#define IMAGE_PATH "~/usbdata"
 
 #include "opencv2/opencv.hpp"
 
