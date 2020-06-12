@@ -27,5 +27,11 @@
 
 #include <X11/Xlib.h>
 
+typedef struct _Source
+{
+	std::string str_path ;
+	cv::Mat image ;
+} Source;
+
 #endif
 
