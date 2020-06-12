@@ -38,6 +38,8 @@ int main(int argc, char** argv)
 	printf("Monitor size : %d, %d\n", monitor_width, monitor_height) ;
 
 	cv::Mat display = cv::Mat::zeros(cv::Size(monitor_width, monitor_height), CV_8UC3) ;
+	cv::Mat next_image = cv::Mat::zeros(cv::Size(monitor_width, monitor_height), CV_8UC3) ;
+	cv::Mat cur_image = cv::Mat::zeros(cv::Size(monitor_width, monitor_height), CV_8UC3) ;
 	
 	std::vector<std::string> vec_image_path ;
 	
@@ -130,17 +132,54 @@ int main(int argc, char** argv)
 			
 			cv::imshow("image", display);
 			
-			key = cv::waitKey(i_user_delay) ;
+		}
+		
+		for( int i=0 ; i<i_user_delay ; i++ )
+		{
+			key = cv::waitKey(1) ;
 
 			if( key == 'q' || key == 'Q' )
 			{
-				break ;
+				goto exit ;
 			}
 		}
-		
-		index++ ;
-		if( index >= size_images )	index = 0 ;
+
+		int next_index = index + 1 ;
+		if( next_index >= size_images )	next_index = 0 ;
+
+		if( index != next_index )
+		{
+			cv::Rect roi ;
+			roi.x = (next_image.cols - vec_image[next_index].cols)/2 ;
+			roi.y = (next_image.rows - vec_image[next_index].rows)/2 ;
+			roi.width = vec_image[next_index].cols ;
+			roi.height = vec_image[next_index].rows ;
+
+			next_image = 0 ;
+			vec_image[next_index].copyTo(next_image(roi)) ;
+
+			roi.x = (cur_image.cols - vec_image[index].cols)/2 ;
+			roi.y = (cur_image.rows - vec_image[index].rows)/2 ;
+			roi.width = vec_image[index].cols ;
+			roi.height = vec_image[index].rows ;
+
+			cur_image = 0 ;
+			vec_image[index].copyTo(cur_image(roi)) ;
+			
+			for (double alpha = 0; alpha < 1; alpha += 0.05) 
+			{
+		        cv::Mat out;
+		        cv::addWeighted(next_image, alpha, cur_image, 1-alpha, 0, out, -1);
+		        imshow("image", out);
+		        cv::waitKey(100);
+		    }
+		}
+
+		index = next_index ;
+		//
 	}
-		
+
+exit:
+
 	return 0 ;
 }
