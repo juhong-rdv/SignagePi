@@ -2,7 +2,7 @@
 #define _MAIN_H_
 
 #include <string>
-#include <curl/curl.h>
+//#include <curl/curl.h>
 
 #define IMAGE_PATH "~/usbdata"
 
