@@ -39,25 +39,25 @@ void CheckSourceData(std::vector<Source>& vec_source, const std::string path, co
 
 	const int size_image_files = vec_source.size() ;
 	
-	std::vector<cv::Mat> vec_image(size_image_files) ;
+	//std::vector<cv::Mat> vec_image(size_image_files) ;
 	for( int i=0 ; i<size_image_files ; i++ )
 	{
-		vec_source[i].image.copyTo(vec_image[i]) ;
+		//vec_source[i].image.copyTo(vec_image[i]) ;
 
 		//rotate
 		double angle = (double)rotate;
 
 	    // get rotation matrix for rotating the image around its center in pixel coordinates
-	    cv::Point2f center((vec_image[i].cols-1)/2.0, (vec_image[i].rows-1)/2.0);
+	    cv::Point2f center((vec_source[i].image.cols-1)/2.0, (vec_source[i].image.rows-1)/2.0);
 	    cv::Mat rot = cv::getRotationMatrix2D(center, angle, 1.0);
 	    // determine bounding rectangle, center not relevant
-	    cv::Rect2f bbox = cv::RotatedRect(cv::Point2f(), vec_image[i].size(), angle).boundingRect2f();
+	    cv::Rect2f bbox = cv::RotatedRect(cv::Point2f(), vec_source[i].image.size(), angle).boundingRect2f();
 	    // adjust transformation matrix
-	    rot.at<double>(0,2) += bbox.width/2.0 - vec_image[i].cols/2.0;
-	    rot.at<double>(1,2) += bbox.height/2.0 - vec_image[i].rows/2.0;
+	    rot.at<double>(0,2) += bbox.width/2.0 - vec_source[i].image.cols/2.0;
+	    rot.at<double>(1,2) += bbox.height/2.0 - vec_source[i].image.rows/2.0;
 
 	    cv::Mat dst;
-	    cv::warpAffine(vec_image[i], dst, rot, bbox.size());
+	    cv::warpAffine(vec_source[i].image, dst, rot, bbox.size());
 		
 		//Resize to fit monitor resolution.
 		float resize_width_rate = 1.0 ;
@@ -70,7 +70,7 @@ void CheckSourceData(std::vector<Source>& vec_source, const std::string path, co
 
 		if( resize_rate < 1.0 )
 		{
-			cv::resize(dst, vec_image[i], cv::Size(), resize_rate, resize_rate) ;
+			cv::resize(dst, vec_source[i].image, cv::Size(), resize_rate, resize_rate) ;
 		}
 	}
 }
@@ -125,7 +125,6 @@ int main(int argc, char** argv)
 
 	char key = 0 ;
 	int index = 0 ;
-	const int size_images = vec_source.size() ;
 
 	cv::namedWindow("image", cv::WND_PROP_FULLSCREEN) ;
 	cv::setWindowProperty("image", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN) ;
@@ -133,6 +132,8 @@ int main(int argc, char** argv)
 	while(1)
 	{
 		CheckSourceData(vec_source, str_user_path, i_rotate, monitor_width, monitor_height) ;
+
+		const int size_images = vec_source.size() ;
 		
 		if( index < size_images )
 		{
