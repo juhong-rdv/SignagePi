@@ -3,6 +3,7 @@
 int main(int argc, char** argv)
 {
 	int i_user_delay = 1000 ; 
+	int i_rotate = 90 ;
 	std::string str_user_path = IMAGE_PATH ;
 		
 	//------------------------------------------------------------------------------------
@@ -12,6 +13,7 @@ int main(int argc, char** argv)
         namespace po = boost::program_options;
         po::options_description desc("Options");
         desc.add_options()("delay", po::value<int>()->default_value(0));
+		desc.add_options()("rotate", po::value<int>()->default_value(90));
 		desc.add_options()("path", po::value<std::string>()->default_value(""));
 
         po::variables_map vm;
@@ -19,10 +21,13 @@ int main(int argc, char** argv)
         po::notify(vm);
 
         std::cout << "delay: '" << boost::any_cast<int>(vm["delay"].value()) << "'\n";
+		std::cout << "rotate: '" << boost::any_cast<int>(vm["rotate"].value()) << "'\n";	
 		std::cout << "path: '" << boost::any_cast<std::string>(vm["path"].value()) << "'\n";
 
 		//port 
 		i_user_delay = boost::any_cast<int>(vm["delay"].value()) ;
+		//rotate
+		i_rotate = boost::any_cast<int>(vm["rotate"].value()) ;
 		//path
 		str_user_path = boost::any_cast<std::string>(vm["path"].value()) ;
     }	
@@ -80,7 +85,7 @@ int main(int argc, char** argv)
 		vec_image[i] = cv::imread(vec_image_path[i]) ;
 
 		//rotate
-		double angle = 90;
+		double angle = (double)i_rotate;
 
 	    // get rotation matrix for rotating the image around its center in pixel coordinates
 	    cv::Point2f center((vec_image[i].cols-1)/2.0, (vec_image[i].rows-1)/2.0);
