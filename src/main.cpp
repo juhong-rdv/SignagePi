@@ -1,8 +1,45 @@
 #include "main.h"
 
+void RotateResizeImage(cv::Mat& image, const int rotate, const int width, const int height)
+{
+	//rotate
+	double angle = (double)rotate;
+
+    // get rotation matrix for rotating the image around its center in pixel coordinates
+    cv::Point2f center((image.cols-1)/2.0, (image.rows-1)/2.0);
+    cv::Mat rot = cv::getRotationMatrix2D(center, angle, 1.0);
+    // determine bounding rectangle, center not relevant
+    cv::Rect2f bbox = cv::RotatedRect(cv::Point2f(), image.size(), angle).boundingRect2f();
+    // adjust transformation matrix
+    rot.at<double>(0,2) += bbox.width/2.0 - image.cols/2.0;
+    rot.at<double>(1,2) += bbox.height/2.0 - image.rows/2.0;
+
+    cv::Mat dst;
+    cv::warpAffine(image, dst, rot, bbox.size());
+	
+	//Resize to fit monitor resolution.
+	float resize_width_rate = 1.0 ;
+	float resize_height_rate = 1.0 ;
+	
+	resize_width_rate = (float)width / (float)dst.cols ;
+	resize_height_rate = (float)height / (float)dst.rows ;
+
+	float resize_rate = std::fmin(resize_width_rate, resize_height_rate) ;
+
+	if( resize_rate < 1.0 )
+	{
+		cv::resize(dst, image, cv::Size(), resize_rate, resize_rate) ;
+	}
+}
+
 void CheckSourceData(std::vector<Source>& vec_source, const std::string path, const int rotate, const int width, const int height)
 {
-	vec_source.clear() ;
+	int size_source = vec_source.size() ;
+
+	//for( int i=0 ; i<size_source ; i++ )
+	//vec_source.clear() ;
+
+	int index = 0 ;
 	
 	//get image file path
 	boost::system::error_code c;
@@ -11,7 +48,7 @@ void CheckSourceData(std::vector<Source>& vec_source, const std::string path, co
 		if(boost::filesystem::is_directory(path,c)) 
 		{
 	        std::cout << IMAGE_PATH << " is a directory containing:\n";
-
+			
 			for (boost::filesystem::directory_iterator end, dir(path); dir != end; dir++) 
 			{
 				const boost::filesystem::path &this_path = dir->path();
@@ -19,14 +56,36 @@ void CheckSourceData(std::vector<Source>& vec_source, const std::string path, co
 					this_path.extension() == ".jpg" || this_path.extension() == ".JPG" ||
 					this_path.extension() == ".bmp" || this_path.extension() == ".BMP" ) 
 				{
+					std::time_t time_write = boost::filesystem::last_write_time(this_path) ;
+					
+					if( index < size_source )
+					{
+						if( vec_source[index].str_path != this_path.string() ||
+							vec_source[index].time != time_write )
+						{
+							vec_source[index].str_path = this_path.string() ;
+							vec_source[index].time = time_write ;
+							vec_source[index].image = cv::imread(vec_source[index].str_path) ;
+
+							RotateResizeImage(vec_source[index].image, rotate, width, height) ;
+						}
+					}
+					else
+					{						
+						Source source ;
+						source.str_path = this_path.string() ;
+						source.image = cv::imread(source.str_path) ;
+						source.time = time_write ;
+
+						RotateResizeImage(source.image, rotate, width, height) ;
+						
+						vec_source.push_back(source) ;
+					}
+					
+					index++ ;
+					
 					//std::cout << this_path << "\n";
-					//function1(this_path); // Nothing to free
-
-					Source source ;
-					source.str_path = this_path.string() ;
-					source.image = cv::imread(source.str_path) ;
-
-					vec_source.push_back(source) ;
+					//function1(this_path); // Nothing to free					
 				} 
 			}
 	    }
@@ -37,41 +96,10 @@ void CheckSourceData(std::vector<Source>& vec_source, const std::string path, co
 	    std::cerr << boost::diagnostic_information(ex);
 	} 
 
-	const int size_image_files = vec_source.size() ;
-	
-	//std::vector<cv::Mat> vec_image(size_image_files) ;
-	for( int i=0 ; i<size_image_files ; i++ )
+	int pop_size = size_source - index ;
+	for( int i=0 ; i<pop_size ; i++ )
 	{
-		//vec_source[i].image.copyTo(vec_image[i]) ;
-
-		//rotate
-		double angle = (double)rotate;
-
-	    // get rotation matrix for rotating the image around its center in pixel coordinates
-	    cv::Point2f center((vec_source[i].image.cols-1)/2.0, (vec_source[i].image.rows-1)/2.0);
-	    cv::Mat rot = cv::getRotationMatrix2D(center, angle, 1.0);
-	    // determine bounding rectangle, center not relevant
-	    cv::Rect2f bbox = cv::RotatedRect(cv::Point2f(), vec_source[i].image.size(), angle).boundingRect2f();
-	    // adjust transformation matrix
-	    rot.at<double>(0,2) += bbox.width/2.0 - vec_source[i].image.cols/2.0;
-	    rot.at<double>(1,2) += bbox.height/2.0 - vec_source[i].image.rows/2.0;
-
-	    cv::Mat dst;
-	    cv::warpAffine(vec_source[i].image, dst, rot, bbox.size());
-		
-		//Resize to fit monitor resolution.
-		float resize_width_rate = 1.0 ;
-		float resize_height_rate = 1.0 ;
-		
-		resize_width_rate = (float)width / (float)dst.cols ;
-		resize_height_rate = (float)height / (float)dst.rows ;
-
-		float resize_rate = std::fmin(resize_width_rate, resize_height_rate) ;
-
-		if( resize_rate < 1.0 )
-		{
-			cv::resize(dst, vec_source[i].image, cv::Size(), resize_rate, resize_rate) ;
-		}
+		vec_source.pop_back() ;
 	}
 }
 

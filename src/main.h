@@ -30,6 +30,7 @@
 typedef struct _Source
 {
 	std::string str_path ;
+	std::time_t time ;
 	cv::Mat image ;
 } Source;
 
