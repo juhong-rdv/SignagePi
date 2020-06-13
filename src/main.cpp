@@ -178,19 +178,19 @@ int main(int argc, char** argv)
 
 			display = 0 ;
 			
-			int fontHeight = 13;
+			int fontHeight = 100;
 			int thickness = -1;
 			int linestyle = 16;
 			int baseline = 0;
 
-			std::string str_text = "No Image" ;
+			std::string str_text = "이미지가 없어요 ㅜㅜ" ;
 
 			cv::Size textSize = ft2->getTextSize(str_text, fontHeight, thickness, &baseline);
 
 			cv::Point ori = cv::Point((display.cols-textSize.width)/2, 200) ;
 			
 			ft2->putText(display, "No Image", ori, fontHeight, cv::Scalar(192,193,101), thickness, linestyle, true) ;
-
+			
 			cv::imshow("image", display);
 
 			key = cv::waitKey(1);
