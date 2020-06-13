@@ -185,7 +185,7 @@ int main(int argc, char** argv)
 
 			cv::Size textSize = ft2->getTextSize(str_text, fontHeight, thickness, &baseline);
 
-			cv::Mat tmp_image = cv::Mat::zeros(textSize, CV_8UC3) ;
+			cv::Mat tmp_image = cv::Mat::zeros(cv::Size(textSize.width, fontHeight), CV_8UC3) ;
 			
 			ft2->putText(tmp_image, str_text, cv::Point(0,0), fontHeight, cv::Scalar(192,193,101), thickness, linestyle, true) ;
 
