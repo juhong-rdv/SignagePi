@@ -191,10 +191,16 @@ int main(int argc, char** argv)
 
 			cv::Mat tmp_image = cv::Mat::zeros(cv::Size(textSize.width, fontHeight), CV_8UC3) ;
 			
-			ft2->putText(tmp_image, str_text, cv::Point(0,0), fontHeight, cv::Scalar(192,193,101), thickness, linestyle, true) ;
+			ft2->putText(tmp_image, str_text, cv::Point(0,fontHeight-(fontHeight-textSize.height)/2), fontHeight, cv::Scalar(192,193,101), thickness, linestyle, true) ;
 
 			RotateResizeImage(tmp_image, i_rotate, monitor_width, monitor_height) ;
-
+			
+			//printf("textSize = %d, %d\n", textSize.width, textSize.height) ;
+			//printf("tmp_image size = %d, %d\n", tmp_image.cols, tmp_image.rows) ;
+			
+			//cv::imshow("test", tmp_image) ;
+			//cv::waitKey(0) ;
+			
 			cv::Rect roi ;
 			roi.x = (display.cols - tmp_image.cols)/2 ;
 			roi.y = (display.rows - tmp_image.rows)/2 ;
@@ -202,7 +208,7 @@ int main(int argc, char** argv)
 			roi.height = tmp_image.rows ;
 
 			display = 0 ;
-			vec_source[index].image.copyTo(display(roi)) ;
+			tmp_image.copyTo(display(roi)) ;
 			
 			cv::imshow("image", display);
 
