@@ -30,6 +30,10 @@ void RotateResizeImage(cv::Mat& image, const int rotate, const int width, const 
 	{
 		cv::resize(dst, image, cv::Size(), resize_rate, resize_rate) ;
 	}
+	else
+	{
+		dst.copyTo(image) ;
+	}
 }
 
 void CheckSourceData(std::vector<Source>& vec_source, const std::string path, const int rotate, const int width, const int height)
