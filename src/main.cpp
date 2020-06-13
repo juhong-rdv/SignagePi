@@ -171,66 +171,102 @@ int main(int argc, char** argv)
 		CheckSourceData(vec_source, str_user_path, i_rotate, monitor_width, monitor_height) ;
 
 		const int size_images = vec_source.size() ;
-		
-		if( index < size_images )
+
+		if( size_images <= 0 )
 		{
-			//copy
-			cv::Rect roi ;
-			roi.x = (display.cols - vec_source[index].image.cols)/2 ;
-			roi.y = (display.rows - vec_source[index].image.rows)/2 ;
-			roi.width = vec_source[index].image.cols ;
-			roi.height = vec_source[index].image.rows ;
+			index = 0 ;
 
 			display = 0 ;
-			vec_source[index].image.copyTo(display(roi)) ;
 			
+			int fontHeight = 13;
+			int thickness = -1;
+			int linestyle = 16;
+			int baseline = 0;
+
+			std::string str_text = "No Image" ;
+
+			cv::Size textSize = ft2->getTextSize(str_text, fontHeight, thickness, &baseline);
+
+			cv::Point ori = cv::Point((display.cols-textSize.width)/2, 200) ;
+			
+			ft2->putText(display, "No Image", ori, fontHeight, cv::Scalar(192,193,101), thickness, linestyle, true) ;
+
 			cv::imshow("image", display);
-			
-		}
-		
-		for( int i=0 ; i<i_user_delay ; i++ )
-		{
-			key = cv::waitKey(1) ;
+
+			key = cv::waitKey(1);
 
 			if( key == 'q' || key == 'Q' )
 			{
 				goto exit ;
 			}
 		}
-
-		int next_index = index + 1 ;
-		if( next_index >= size_images )	next_index = 0 ;
-
-		if( index != next_index )
+		else
 		{
-			cv::Rect roi ;
-			roi.x = (next_image.cols - vec_source[next_index].image.cols)/2 ;
-			roi.y = (next_image.rows - vec_source[next_index].image.rows)/2 ;
-			roi.width = vec_source[next_index].image.cols ;
-			roi.height = vec_source[next_index].image.rows ;
-
-			next_image = 0 ;
-			vec_source[next_index].image.copyTo(next_image(roi)) ;
-
-			roi.x = (cur_image.cols - vec_source[index].image.cols)/2 ;
-			roi.y = (cur_image.rows - vec_source[index].image.rows)/2 ;
-			roi.width = vec_source[index].image.cols ;
-			roi.height = vec_source[index].image.rows ;
-
-			cur_image = 0 ;
-			vec_source[index].image.copyTo(cur_image(roi)) ;
-			
-			for (double alpha = 0; alpha < 1; alpha += 0.05) 
+			if( index < size_images )
 			{
-		        cv::Mat out;
-		        cv::addWeighted(next_image, alpha, cur_image, 1-alpha, 0, out, -1);
-		        imshow("image", out);
-		        cv::waitKey(100);
-		    }
-		}
+				//copy
+				cv::Rect roi ;
+				roi.x = (display.cols - vec_source[index].image.cols)/2 ;
+				roi.y = (display.rows - vec_source[index].image.rows)/2 ;
+				roi.width = vec_source[index].image.cols ;
+				roi.height = vec_source[index].image.rows ;
 
-		index = next_index ;
-		//
+				display = 0 ;
+				vec_source[index].image.copyTo(display(roi)) ;
+				
+				cv::imshow("image", display);				
+			}
+			
+			for( int i=0 ; i<i_user_delay ; i++ )
+			{
+				key = cv::waitKey(1) ;
+
+				if( key == 'q' || key == 'Q' )
+				{
+					goto exit ;
+				}
+			}
+
+			int next_index = index + 1 ;
+			if( next_index >= size_images )	next_index = 0 ;
+
+			if( index != next_index )
+			{
+				cv::Rect roi ;
+				roi.x = (next_image.cols - vec_source[next_index].image.cols)/2 ;
+				roi.y = (next_image.rows - vec_source[next_index].image.rows)/2 ;
+				roi.width = vec_source[next_index].image.cols ;
+				roi.height = vec_source[next_index].image.rows ;
+
+				next_image = 0 ;
+				vec_source[next_index].image.copyTo(next_image(roi)) ;
+
+				roi.x = (cur_image.cols - vec_source[index].image.cols)/2 ;
+				roi.y = (cur_image.rows - vec_source[index].image.rows)/2 ;
+				roi.width = vec_source[index].image.cols ;
+				roi.height = vec_source[index].image.rows ;
+
+				cur_image = 0 ;
+				vec_source[index].image.copyTo(cur_image(roi)) ;
+				
+				for (double alpha = 0; alpha < 1; alpha += 0.05) 
+				{
+			        cv::Mat out;
+			        cv::addWeighted(next_image, alpha, cur_image, 1-alpha, 0, out, -1);
+			        imshow("image", out);
+			        key = cv::waitKey(100);
+
+					if( key == 'q' || key == 'Q' )
+					{
+						goto exit ;
+					}
+					
+			    }
+			}
+
+			index = next_index ;
+			//
+		}
 	}
 
 exit:
