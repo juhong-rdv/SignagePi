@@ -177,6 +177,8 @@ int main(int argc, char** argv)
 			index = 0 ;
 
 			display = 0 ;
+			cv::Mat tmp_image ;
+			display.copyTo(tmp_image) ;
 			
 			int fontHeight = 100;
 			int thickness = -1;
@@ -189,9 +191,11 @@ int main(int argc, char** argv)
 
 			cv::Point ori = cv::Point((display.cols-textSize.width)/2, 200) ;
 			
-			ft2->putText(display, str_text, ori, fontHeight, cv::Scalar(192,193,101), thickness, linestyle, true) ;
+			ft2->putText(tmp_image, str_text, ori, fontHeight, cv::Scalar(192,193,101), thickness, linestyle, true) ;
+
+			RotateResizeImage(tmp_image, i_rotate, monitor_width, monitor_height) ;
 			
-			cv::imshow("image", display);
+			cv::imshow("image", tmp_image);
 
 			key = cv::waitKey(1);
 
