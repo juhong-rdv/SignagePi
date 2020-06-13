@@ -105,10 +105,12 @@ void CheckSourceData(std::vector<Source>& vec_source, const std::string path, co
 
 int main(int argc, char** argv)
 {
+	
 	int i_user_delay = 1000 ; 
 	int i_rotate = 90 ;
 	std::string str_user_path = IMAGE_PATH ;
-		
+	std::string str_font_path = "../fonts/Ubuntu-R.ttf" ;
+	
 	//------------------------------------------------------------------------------------
 	//Command parser
 	if(argc > 0)
@@ -118,6 +120,7 @@ int main(int argc, char** argv)
         desc.add_options()("delay", po::value<int>()->default_value(0));
 		desc.add_options()("rotate", po::value<int>()->default_value(90));
 		desc.add_options()("path", po::value<std::string>()->default_value(""));
+		desc.add_options()("font", po::value<std::string>()->default_value(""));
 
         po::variables_map vm;
         po::store(po::parse_command_line(argc,argv,desc),vm);
@@ -126,6 +129,7 @@ int main(int argc, char** argv)
         std::cout << "delay: '" << boost::any_cast<int>(vm["delay"].value()) << "'\n";
 		std::cout << "rotate: '" << boost::any_cast<int>(vm["rotate"].value()) << "'\n";	
 		std::cout << "path: '" << boost::any_cast<std::string>(vm["path"].value()) << "'\n";
+		std::cout << "font: '" << boost::any_cast<std::string>(vm["font"].value()) << "'\n";
 
 		//port 
 		i_user_delay = boost::any_cast<int>(vm["delay"].value()) ;
@@ -133,10 +137,15 @@ int main(int argc, char** argv)
 		i_rotate = boost::any_cast<int>(vm["rotate"].value()) ;
 		//path
 		str_user_path = boost::any_cast<std::string>(vm["path"].value()) ;
+		str_font_path = boost::any_cast<std::string>(vm["font"].value()) ;
     }	
 	//Command parser
 	//------------------------------------------------------------------------------------
 
+	cv::Ptr<cv::freetype::FreeType2> ft2 ;
+	ft2 = cv::freetype::createFreeType2();
+	ft2->loadFontData(str_font_path, 0);
+	
 	//모니터 해상도
 	Display* disp = XOpenDisplay(NULL);
     Screen*  scrn = DefaultScreenOfDisplay(disp);

@@ -7,6 +7,7 @@
 #define IMAGE_PATH "~/usbdata"
 
 #include "opencv2/opencv.hpp"
+#include "opencv2/freetype.hpp"
 
 //boost 
 #include <boost/asio.hpp>
