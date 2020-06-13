@@ -189,7 +189,7 @@ int main(int argc, char** argv)
 
 			cv::Point ori = cv::Point((display.cols-textSize.width)/2, 200) ;
 			
-			ft2->putText(display, "No Image", ori, fontHeight, cv::Scalar(192,193,101), thickness, linestyle, true) ;
+			ft2->putText(display, str_text, ori, fontHeight, cv::Scalar(192,193,101), thickness, linestyle, true) ;
 			
 			cv::imshow("image", display);
 
