@@ -175,10 +175,6 @@ int main(int argc, char** argv)
 		if( size_images <= 0 )
 		{
 			index = 0 ;
-
-			display = 0 ;
-			cv::Mat tmp_image ;
-			display.copyTo(tmp_image) ;
 			
 			int fontHeight = 100;
 			int thickness = -1;
@@ -189,13 +185,22 @@ int main(int argc, char** argv)
 
 			cv::Size textSize = ft2->getTextSize(str_text, fontHeight, thickness, &baseline);
 
-			cv::Point ori = cv::Point((display.cols-textSize.width)/2, 200) ;
+			cv::Mat tmp_image = cv::Mat::zeros(textSize, CV_8UC3) ;
 			
-			ft2->putText(tmp_image, str_text, ori, fontHeight, cv::Scalar(192,193,101), thickness, linestyle, true) ;
+			ft2->putText(tmp_image, str_text, cv::Point(0,0), fontHeight, cv::Scalar(192,193,101), thickness, linestyle, true) ;
 
 			RotateResizeImage(tmp_image, i_rotate, monitor_width, monitor_height) ;
+
+			cv::Rect roi ;
+			roi.x = (display.cols - tmp_image.cols)/2 ;
+			roi.y = (display.rows - tmp_image.rows)/2 ;
+			roi.width = tmp_image.cols ;
+			roi.height = tmp_image.rows ;
+
+			display = 0 ;
+			vec_source[index].image.copyTo(display(roi)) ;
 			
-			cv::imshow("image", tmp_image);
+			cv::imshow("image", display);
 
 			key = cv::waitKey(1);
 
