@@ -58,7 +58,8 @@ void CheckSourceData(std::vector<Source>& vec_source, const std::string path, co
 				const boost::filesystem::path &this_path = dir->path();
 				if (this_path.extension() == ".png" || this_path.extension() == ".PNG" ||
 					this_path.extension() == ".jpg" || this_path.extension() == ".JPG" ||
-					this_path.extension() == ".bmp" || this_path.extension() == ".BMP" ) 
+					this_path.extension() == ".bmp" || this_path.extension() == ".BMP" || 
+					this_path.extension() == ".mp4" || this_path.extension() == ".MP4" ) 
 				{
 					std::time_t time_write = boost::filesystem::last_write_time(this_path) ;
 					
@@ -69,19 +70,67 @@ void CheckSourceData(std::vector<Source>& vec_source, const std::string path, co
 						{
 							vec_source[index].str_path = this_path.string() ;
 							vec_source[index].time = time_write ;
-							vec_source[index].image = cv::imread(vec_source[index].str_path) ;
 
-							RotateResizeImage(vec_source[index].image, rotate, width, height) ;
+							if( this_path.extension() == ".mp4" || this_path.extension() == ".MP4" ) 
+							{
+								vec_source[index].image.release() ;
+								
+								if( vec_source[index].p_cap )
+								{									
+									vec_source[index].p_cap->release();
+									delete vec_source[index].p_cap ;
+									vec_source[index].p_cap = NULL ;
+								}
+								
+								vec_source[index].p_cap = new cv::VideoCapture(vec_source[index].str_path);
+
+								if( vec_source[index].p_cap )
+								{
+									if( vec_source[index].p_cap->isOpened() )
+									{
+										vec_source[index].video_frame_rate = vec_source[index].p_cap->get(cv::CAP_PROP_FPS);
+
+										(*vec_source[index].p_cap) >> vec_source[index].image ;
+
+										RotateResizeImage(vec_source[index].image, rotate, width, height) ;
+									}
+								}
+							}
+							else
+							{
+								vec_source[index].image = cv::imread(vec_source[index].str_path) ;
+
+								RotateResizeImage(vec_source[index].image, rotate, width, height) ;
+							}
 						}
 					}
 					else
 					{						
 						Source source ;
 						source.str_path = this_path.string() ;
-						source.image = cv::imread(source.str_path) ;
 						source.time = time_write ;
 
-						RotateResizeImage(source.image, rotate, width, height) ;
+						if( this_path.extension() == ".mp4" || this_path.extension() == ".MP4" ) 
+						{
+							source.p_cap = new cv::VideoCapture(source.str_path);
+
+							if( source.p_cap )
+							{
+								if( source.p_cap->isOpened() )
+								{
+									source.video_frame_rate = source.p_cap->get(cv::CAP_PROP_FPS);
+
+									(*source.p_cap) >> source.image ;
+									
+									RotateResizeImage(source.image, rotate, width, height) ;
+								}
+							}
+						}
+						else
+						{
+							source.image = cv::imread(source.str_path) ;
+							RotateResizeImage(source.image, rotate, width, height) ;
+						}
 						
 						vec_source.push_back(source) ;
 					}
@@ -223,29 +272,88 @@ int main(int argc, char** argv)
 		{
 			if( index < size_images )
 			{
-				//copy
-				cv::Rect roi ;
-				roi.x = (display.cols - vec_source[index].image.cols)/2 ;
-				roi.y = (display.rows - vec_source[index].image.rows)/2 ;
-				roi.width = vec_source[index].image.cols ;
-				roi.height = vec_source[index].image.rows ;
-
 				display = 0 ;
-				vec_source[index].image.copyTo(display(roi)) ;
-				
-				cv::imshow("image", display);				
-			}
-			
-			for( int i=0 ; i<i_user_delay ; i++ )
-			{
-				key = cv::waitKey(1) ;
 
-				if( key == 'q' || key == 'Q' )
+				cv::Mat index_image;
+
+				bool b_isVideo = false ;
+
+				if( vec_source[index].p_cap )
 				{
-					goto exit ;
+					if( vec_source[index].p_cap->isOpened()  )
+					{
+						b_isVideo = true ;
+					}
+				}
+
+				if( b_isVideo )
+				{
+					int frame_length = int(vec_source[index].p_cap->get(cv::CAP_PROP_FRAME_COUNT)) ;
+					double frame_rate = vec_source[index].p_cap->get(cv::CAP_PROP_FPS);
+					double frame_msec = 1000.0 / frame_rate ;
+					vec_source[index].p_cap->set(cv::CAP_PROP_POS_MSEC, frame_msec) ;
+					vec_source[index].p_cap->set(cv::CAP_PROP_POS_FRAMES, 0);
+					
+					printf("frame_rate = %f\n", frame_rate) ;
+					printf("frame_length = %d\n", frame_length) ;
+
+				
+					for( int i=0 ; i<frame_length ; i++ )
+					{
+						(*vec_source[index].p_cap) >> index_image ; 
+
+						if( !index_image.empty() )
+						{
+							RotateResizeImage(index_image, i_rotate, monitor_width, monitor_height) ;
+
+							//copy
+							cv::Rect roi ;
+							roi.x = (display.cols - index_image.cols)/2 ;
+							roi.y = (display.rows - index_image.rows)/2 ;
+							roi.width = index_image.cols ;
+							roi.height = index_image.rows ;
+
+							//display(roi) = index_image ;
+							index_image.copyTo(display(roi)) ;
+							
+							cv::imshow("image", display);		
+
+							key = cv::waitKey(1) ;
+
+							if( key == 'q' || key == 'Q' )
+							{
+								goto exit ;
+							}
+						}
+					}
+				}
+				else
+				{
+					index_image = vec_source[index].image ;
+
+					//copy
+					cv::Rect roi ;
+					roi.x = (display.cols - index_image.cols)/2 ;
+					roi.y = (display.rows - index_image.rows)/2 ;
+					roi.width = index_image.cols ;
+					roi.height = index_image.rows ;
+					
+					index_image.copyTo(display(roi)) ;
+					
+					cv::imshow("image", display);		
+					
+					for( int i=0 ; i<i_user_delay ; i++ )
+					{
+						key = cv::waitKey(1) ;
+		
+						if( key == 'q' || key == 'Q' )
+						{
+							goto exit ;
+						}
+					}
 				}
 			}
-
+			
 			int next_index = index + 1 ;
 			if( next_index >= size_images )	next_index = 0 ;
 

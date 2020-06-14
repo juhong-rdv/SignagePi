@@ -33,6 +33,10 @@ typedef struct _Source
 	std::string str_path ;
 	std::time_t time ;
 	cv::Mat image ;
+
+	//video
+	cv::VideoCapture* p_cap = NULL ;
+	int video_frame_rate = 0 ;
 } Source;
 
 #endif
